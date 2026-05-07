@@ -11,48 +11,58 @@ st.set_page_config(page_title="Southwind Sales Predictor", layout="wide")
 
 # 2. Fungsi Load Data dengan Anti-Error Encoding
 @st.cache_data
+@st.cache_data
 def load_data():
     url = "https://github.com/seiba1/tugas_visdat/raw/refs/heads/main/Southwind.csv"
     
-    # Daftar encoding yang akan dicoba jika UTF-8 gagal
     encodings = ['utf-8', 'windows-1252', 'latin1']
     
     df = None
     for enc in encodings:
         try:
+            # PERBAIKAN UTAMA: Menambahkan sep=';' karena file Anda menggunakan titik koma
             df = pd.read_csv(
                 url, 
                 encoding=enc,
-                sep=',', 
+                sep=';',           # Menggunakan titik koma sesuai data Anda
                 quotechar='"', 
                 on_bad_lines='skip', 
                 engine='python'
             )
-            break # Jika berhasil, keluar dari loop
-        except UnicodeDecodeError:
-            continue # Jika gagal, coba encoding berikutnya
+            
+            # Jika setelah dibaca kolom 'Penjualan' masih tidak ada, 
+            # mungkin filenya pakai koma di versi lain, kita coba deteksi otomatis
+            if 'Penjualan' not in df.columns:
+                df = pd.read_csv(url, encoding=enc, sep=',', on_bad_lines='skip', engine='python')
+                
+            break
+        except Exception:
+            continue
     
-    if df is None:
-        st.error("Gagal membaca file: Masalah Encoding. Pastikan file CSV valid.")
+    if df is None or df.empty:
+        st.error("Gagal membaca file. Pastikan file CSV valid.")
         return pd.DataFrame()
 
     try:
-        # Nama kolom harus persis sesuai file (Penjualan pakai P besar)
+        # Nama kolom (Pastikan huruf besar-kecilnya benar)
         cols_needed = ['Penjualan', 'jumlah', 'diskon', 'keuntungan']
         
-        # Pastikan kolom tersedia
+        # Cek sekali lagi apakah kolom ada
         if not set(cols_needed).issubset(df.columns):
-            st.error(f"Kolom tidak lengkap! Kolom di file: {df.columns.tolist()}")
+            st.error(f"Kolom tidak ditemukan! Kolom yang terbaca: {df.columns.tolist()}")
             return pd.DataFrame()
 
         df = df[cols_needed].copy()
         for col in cols_needed:
+            # Mengganti koma menjadi titik jika angka desimal menggunakan format Indonesia (0,5 -> 0.5)
+            if df[col].dtype == 'object':
+                df[col] = df[col].str.replace(',', '.')
             df[col] = pd.to_numeric(df[col], errors='coerce')
             
         return df.dropna()
     
     except Exception as e:
-        st.error(f"Terjadi kesalahan saat memproses data: {e}")
+        st.error(f"Kesalahan proses kolom: {e}")
         return pd.DataFrame()
 
 # 3. Fungsi Training Model
