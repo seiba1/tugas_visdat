@@ -14,7 +14,7 @@ st.set_page_config(page_title="Analisis Penjualan Southwind", layout="wide")
 def load_data():
     # PERBAIKAN 1: Gunakan link RAW agar pandas bisa membaca datanya
     # Jika file ada di repo yang sama dengan apps.py, cukup tulis nama filenya saja
-    url = "https://raw.githubusercontent.com/seiba1/tugas_visdat/main/Southwind.csv"
+    url = "https://github.com/seiba1/tugas_visdat/raw/refs/heads/main/Southwind.csv"
     
     try:
         # PERBAIKAN 2: Tambahkan parameter penanganan error CSV
