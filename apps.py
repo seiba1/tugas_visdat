@@ -13,6 +13,7 @@ st.set_page_config(page_title="Analisis Penjualan Southwind", layout="wide")
 @st.cache_data
 def load_data():
     # Membaca file CSV yang diunggah
+    url = 'https://github.com/seiba1/tugas_visdat/blob/main/Southwind.csv'
     df = pd.read_csv('Southwind.csv')
     # Membersihkan kolom (opsional, menyesuaikan dengan data Southwind)
     df = df[['Penjualan', 'jumlah', 'diskon', 'keuntungan']].dropna()
